@@ -394,6 +394,7 @@ namespace drawAxonsSW
         #region Add Reference Points
         public void AddRefPts()
         {
+            // THIS IS A TEST I MADE A CHANGE
             //make sure we have a part open
             string partTemplate = iSwApp.GetUserPreferenceStringValue((int)swUserPreferenceStringValue_e.swDefaultTemplatePart);
             if ((partTemplate != null) && (partTemplate != ""))
