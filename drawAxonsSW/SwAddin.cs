@@ -430,55 +430,15 @@ namespace drawAxonsSW
 
                 Feature combineFeat = GenCombine(modelDoc, swModelDocExt, selMgr, featMgr, bodiesList);
 
+                List<Sketch> boundryCurves = GenBoundarySketches(selMgr, modelDoc, swModelDocExt, featMgr, rpFeats, refPlanesFeat, bodyFolder, fBoxPts, skMgr);
+
                 if (selMgr.GetSelectedObjectCount() > 0)
                 {
                     selMgr.DeSelect2(Enumerable.Range(1, selMgr.GetSelectedObjectCount()).ToArray(), -1);
                     modelDoc.ClearSelection2(true);
                 }
 
-                object[] bodies = bodyFolder.GetBodies();
-                Body2 swBody = (Body2)bodies[0];
-                object[] feats = (object[])swBody.GetFeatures();
-                Debug.Print("     Number of features in body #" + (int)(0 + 1) + ": " + (int)swBody.GetFeatureCount());
-                Feature combineSB = (Feature)feats[0];
-                Debug.Print("       Name of feature: " + (string)combineSB.Name);
-
-                object BoxFeatureArrayRP = null;
-                double[] BoxFeatureDblArrayRP = new double[7];
-                double[] BoxFeatureDblArrayF = new double[7];
-                bool status;
                 
-                Debug.Print("Name: " + combineFeat.Name + " Type: " + combineFeat.GetTypeName2());
-                Debug.Print("Name: " + combineSB.Name + " Type: " + combineSB.GetTypeName2());
-                status = refPlanesFeat[1].GetBox(ref BoxFeatureArrayRP);
-                BoxFeatureDblArrayRP = (double[])BoxFeatureArrayRP;
-                Debug.Print("  Pt1 = " + "(" + BoxFeatureDblArrayRP[0] * 1000.0 + ", " + BoxFeatureDblArrayRP[1] * 1000.0 + ", " + BoxFeatureDblArrayRP[2] * 1000.0 + ") mm");
-                Debug.Print("  Pt2 = " + "(" + BoxFeatureDblArrayRP[3] * 1000.0 + ", " + BoxFeatureDblArrayRP[4] * 1000.0 + ", " + BoxFeatureDblArrayRP[5] * 1000.0 + ") mm");
-
-                Debug.Print("  Pt1 = " + "(" + fBoxPts[0][0] * 1000.0 + ", " + fBoxPts[0][1] * 1000.0 + ", " + fBoxPts[0][2] * 1000.0 + ") mm");
-                Debug.Print("  Pt2 = " + "(" + fBoxPts[0][3] * 1000.0 + ", " + fBoxPts[0][4] * 1000.0 + ", " + fBoxPts[0][5] * 1000.0 + ") mm");
-                if (Enumerable.SequenceEqual(BoxFeatureDblArrayRP, fBoxPts[0]))
-                {
-
-                }
-                else
-                {
-                    List<Sketch> crossSections = new List<Sketch>();
-                    for (int q = 1; q<= (refPlanesFeat.Count-1); q++)
-                    {
-                        status = swModelDocExt.SelectByID2(refPlanesFeat[q].Name, "PLANE", 0, 0, 0, false, 0, null, 0);
-                        skMgr.InsertSketch(true);
-                        modelDoc.ClearSelection2(true);
-                        modelDoc.Sketch3DIntersections();
-                        status = swModelDocExt.SelectByID2(combineSB.Name, "SOLIDBODY", 0, 0, 0, true, 0, null, 0);
-                        modelDoc.Sketch3DIntersections();
-                        crossSections.Add(skMgr.ActiveSketch);
-                        modelDoc.ClearSelection2(true);
-                        modelDoc.ClearSelection2(true);
-                        skMgr.InsertSketch(true);
-                        
-                    }
-                }
 
             }
             else
@@ -488,6 +448,60 @@ namespace drawAxonsSW
 
                 
 
+        }
+
+        public List<Sketch> GenBoundarySketches(ISelectionMgr selMgrIN, IModelDoc2 modelDocIN, IModelDocExtension swModelDocExtIN, IFeatureManager featMgrIN, List<IFeature> rpFeatsIN, List<Feature> refPlanesFeatIN, IBodyFolder bodyFolderIN, List<double[]> fBoxPtsIN, SketchManager skMgrIN)
+        {
+            if (selMgrIN.GetSelectedObjectCount() > 0)
+            {
+                selMgrIN.DeSelect2(Enumerable.Range(1, selMgrIN.GetSelectedObjectCount()).ToArray(), -1);
+                modelDocIN.ClearSelection2(true);
+            }
+            object[] bodies = bodyFolderIN.GetBodies();
+            Body2 swBody = (Body2)bodies[0];
+            object[] feats = (object[])swBody.GetFeatures();
+            //Debug.Print("     Number of features in body #" + (int)(0 + 1) + ": " + (int)swBody.GetFeatureCount());
+            Feature combineSB = (Feature)feats[0];
+            List<Sketch> crossSections = new List<Sketch>();
+            //Debug.Print("       Name of feature: " + (string)combineSB.Name);
+
+            object BoxFeatureArrayRP = null;
+            double[] BoxFeatureDblArrayRP = new double[7];
+            double[] BoxFeatureDblArrayF = new double[7];
+            bool status;
+
+            //Debug.Print("Name: " + combineFeat.Name + " Type: " + combineFeat.GetTypeName2());
+            //Debug.Print("Name: " + combineSB.Name + " Type: " + combineSB.GetTypeName2());
+            status = refPlanesFeatIN[1].GetBox(ref BoxFeatureArrayRP);
+            BoxFeatureDblArrayRP = (double[])BoxFeatureArrayRP;
+            //Debug.Print("  Pt1 = " + "(" + BoxFeatureDblArrayRP[0] * 1000.0 + ", " + BoxFeatureDblArrayRP[1] * 1000.0 + ", " + BoxFeatureDblArrayRP[2] * 1000.0 + ") mm");
+            //Debug.Print("  Pt2 = " + "(" + BoxFeatureDblArrayRP[3] * 1000.0 + ", " + BoxFeatureDblArrayRP[4] * 1000.0 + ", " + BoxFeatureDblArrayRP[5] * 1000.0 + ") mm");
+
+            //Debug.Print("  Pt1 = " + "(" + fBoxPts[0][0] * 1000.0 + ", " + fBoxPts[0][1] * 1000.0 + ", " + fBoxPts[0][2] * 1000.0 + ") mm");
+            //Debug.Print("  Pt2 = " + "(" + fBoxPts[0][3] * 1000.0 + ", " + fBoxPts[0][4] * 1000.0 + ", " + fBoxPts[0][5] * 1000.0 + ") mm");
+            if (Enumerable.SequenceEqual(BoxFeatureDblArrayRP, fBoxPtsIN[0]))
+            {
+
+            }
+            else
+            {
+                
+                for (int q = 1; q <= (refPlanesFeatIN.Count - 1); q++)
+                {
+                    status = swModelDocExtIN.SelectByID2(refPlanesFeatIN[q].Name, "PLANE", 0, 0, 0, false, 0, null, 0);
+                    skMgrIN.InsertSketch(true);
+                    modelDocIN.ClearSelection2(true);
+                    modelDocIN.Sketch3DIntersections();
+                    status = swModelDocExtIN.SelectByID2(combineSB.Name, "SOLIDBODY", 0, 0, 0, true, 0, null, 0);
+                    modelDocIN.Sketch3DIntersections();
+                    crossSections.Add(skMgrIN.ActiveSketch);
+                    modelDocIN.ClearSelection2(true);
+                    modelDocIN.ClearSelection2(true);
+                    skMgrIN.InsertSketch(true);
+
+                }
+            }
+            return (crossSections);
         }
 
         public List<Feature> GenRefAxis(ISelectionMgr selMgrIN, IModelDoc2 modelDocIN, IModelDocExtension swModelDocExtIN, IFeatureManager featMgrIN, List<IFeature> rpFeatsIN, List<Feature> refPlanesFeatIN)
