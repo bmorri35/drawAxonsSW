@@ -242,8 +242,8 @@ namespace drawAxonsSW
 
             int menuToolbarOption = (int)(swCommandItemType_e.swMenuItem | swCommandItemType_e.swToolbarItem);
             //cmdIndex0 = cmdGroup.AddCommandItem2("CreateCube", -1, "Create a cube", "Create cube", 0, "CreateCube", "", mainItemID1, menuToolbarOption);
-            cmdIndex0 = cmdGroup.AddCommandItem2("Add Reference Points", -1, "Find faces, add reference points to each face w/o repeats, save point and corresponding face data to be used later", "Add Reference Points", 0, "AddRefPts", "", mainItemID1, menuToolbarOption);
-            cmdIndex1 = cmdGroup.AddCommandItem2("Add Centerline Slpine", -1, "Add centerline spline using generated refernece points", "Add Centerline Spline", 2, "CreateCube", "", mainItemID2, menuToolbarOption);
+            cmdIndex0 = cmdGroup.AddCommandItem2("Add Axons", -1, "Adds axons based on nerve branch physiological properties", "Add Axons", 0, "AddAxons", "", mainItemID1, menuToolbarOption);
+            cmdIndex1 = cmdGroup.AddCommandItem2("Test Add Axons", -1, "Testing functions for add axons in cube model", "Test Add Axons", 2, "TestAddAxons", "", mainItemID2, menuToolbarOption);
             //cmdIndex1 = cmdGroup.AddCommandItem2("Add Centerline Slpine", -1, "Display sample property manager", "Show PMP", 2, "ShowPMP", "EnablePMP", mainItemID2, menuToolbarOption);
             cmdGroup.HasToolbar = true;
             cmdGroup.HasMenu = true;
@@ -367,7 +367,7 @@ namespace drawAxonsSW
         #endregion
 
         #region UI Callbacks
-        public void CreateCube()
+        public void TestAddAxons()
         {
             //make sure we have a part open
             string partTemplate = iSwApp.GetUserPreferenceStringValue((int)swUserPreferenceStringValue_e.swDefaultTemplatePart);
@@ -1226,8 +1226,8 @@ namespace drawAxonsSW
             return (rotationMatrix, translationMatrix, refPXYZGlobal, refPXYZInSkPlane, verts, vertXYZ, vertexGlobal, vertexInSkPlane, ScaledVertsXList, ScaledVertsYList, ScaledVertsZList, vertAngList);
         }
 
-        #region Add Reference Points
-        public void AddRefPts()
+        #region Add Axons
+        public void AddAxons()
         {
             // THIS IS A TEST I MADE A CHANGE
             //make sure we have a part open
@@ -1288,6 +1288,12 @@ namespace drawAxonsSW
                 Feature splineFeat = null;
                 IBodyFolder bodyFolder;
                 List<Feature> bodiesList = new List<Feature>();
+
+                Form1 frm = new Form1();
+                frm.ShowDialog();
+                int oBranch = frm.ReturnValue1;
+                //frm.UseWaitCursor = true;
+
                 (refPoints, rpXYZ, rpFeats, splineG, splineFeat, centerLinePtsFeat, centerLinePtsXYZ, bodyFolder) = CheckSplinePts((Feature)modelDoc.FirstFeature(), modelDoc);
                 if (refPoints == null)
                 {
@@ -1373,6 +1379,30 @@ namespace drawAxonsSW
                         bools = swModelDocExt.SelectByID2(feT.Name, "SKETCH", 0, 0, 0, false, 0, null, 0);
                         modelDoc.EditSketch();
 
+                        if (oBranch == 1 || oBranch == 2 || oBranch == 3)
+                        {
+                            int A1 = 50;
+                            int A2 = 50;
+                            int B1 = 150;
+                            int B2 = 150;
+                            int B3 = 50;
+                            int C = 55;
+                            int currentCount = 1;
+                            int totalCount = 1;
+                            while (currentCount <= A1)
+                            {
+
+                            }
+                        }
+                        else if (oBranch == 4 || oBranch == 5)
+                        {
+                            int A = 0;
+                            int B1 = 0;
+                            int B2 = 0;
+                            int B3 = 0;
+                            int C = 0;
+                        }
+
                         int sketchPoints = 1;
                         while (sketchPoints <= 150)
                         {
@@ -1412,19 +1442,20 @@ namespace drawAxonsSW
                                     (Vertex myVert, double[] vPoint, Matrix<double> pXYZGlobal, Matrix<double> pXYZInSkPlane, double[] vPointInSketch) = RotatePointXYZ(dX, dY, 0, null, rotationMatrix, translationMatrix, true, false, cf);
                                     double[] node = new double[13];
                                     List<double[]> axon = new List<double[]>();
-                                    node[0] = vPoint[0];
-                                    node[1] = vPoint[1];
-                                    node[2] = vPoint[2];
-                                    node[3] = vPointInSketch[0];
-                                    node[4] = vPointInSketch[1];
-                                    node[5] = vPointInSketch[2];
-                                    node[6] = distance2Test / distance[0];
-                                    node[7] = distance2Test;
-                                    node[8] = angle;
-                                    node[9] = RingWIn;
-                                    node[10] = 10;
-                                    node[11] = 10;
-                                    node[12] = 300.5;
+                                    node[0] = vPoint[0]; //Global X
+                                    node[1] = vPoint[1]; //Global Y
+                                    node[2] = vPoint[2]; //Global Z
+                                    node[3] = vPointInSketch[0]; //Sketch X
+                                    node[4] = vPointInSketch[1]; //Sketch Y
+                                    node[5] = vPointInSketch[2];//Sketch Z
+                                    node[6] = distance2Test / distance[0];//Distance from com / distinace to boundary
+                                    node[7] = distance2Test;//distance from com
+                                    node[8] = angle;//Assigned angle
+                                    node[9] = RingWIn;//Zone assignment
+                                    node[10] = 10;//Diameter
+                                    node[11] = 10;//Conduction Velocity
+                                    node[12] = 300.5;//Distance to next node
+                                    node[13] = 1;//Firing (Regular=1) (Intermediate=2)
                                     axon.Add(node);
                                     Axons.Add(axon);
                                 //}
@@ -1830,6 +1861,222 @@ namespace drawAxonsSW
 
                 
 
+        }
+
+        public void NewAxon(ContinuousUniformDistribution uni, List<double> vertAngList, List<double[]> ScaledVertsXList, List<double[]> ScaledVertsYList, List<double[]> ScaledVertsZList, Matrix<double> refPXYZInSkPlane, MLApp.MLApp matlab, NormalDistribution norm, MersenneTwister random, double cf, Matrix<double> rotationMatrix, Matrix<double> translationMatrix, int branchType, string axnType, int nodesLeft)
+        {
+            double[] intersectionPointsXY = new double[2];
+            double[] distance = new double[10];
+            double angle;
+            double distance2Test;
+            bool good2Go;
+            int RingWIn;
+
+            int genLevel = 0;
+            double diam = 0;
+            double conductionVel = 0;
+            double distanceToNext = 0;
+            double fireRate = 0;
+
+            if (nodesLeft > 1)
+            {
+                distanceToNext = 0.3005;
+            }
+            else if (nodesLeft == 1)
+            {
+                distanceToNext = 0.301;
+            }
+            else
+            {
+                distanceToNext = 0.001;
+            }
+
+            switch (branchType)
+            {
+                case 1://canal unit
+                    switch (axnType)
+                    {
+                        case "A1":
+                            genLevel = 1;
+                            diam = 0.0014;
+                            conductionVel = 13400;
+                            fireRate = 1;
+                            break;
+                        case "A2":
+                            genLevel = 1;
+                            diam = 0.0014;
+                            conductionVel = 13400;
+                            fireRate = 1;
+                            break;
+                        case "B1":
+                            break;
+                        case "B2":
+                            break;
+                        case "B3":
+                            break;
+                        case "C":
+                            break;
+                    }
+                    break;
+                case 2://otolith unit
+                    switch (axnType)
+                    {
+                        case "A":
+                            break;
+                        case "B1":
+                            break;
+                        case "B2":
+                            break;
+                        case "B3":
+                            break;
+                        case "C":
+                            break;
+                    }
+                    break;
+            }
+
+            // Generate point for outer third section
+            angle = uni.Sample();
+            (intersectionPointsXY, distance) = GetIntersection(angle, vertAngList, ScaledVertsXList, ScaledVertsYList, ScaledVertsZList, refPXYZInSkPlane, matlab);
+
+            distance2Test = GenRandFromDistWithBounds(distance[3], distance[0], norm, random);
+            //                                      (generated Distance, generated angle, distance array, ref point, SW conversion factor, TEST OUTER RING, TEST MIDDLE RING, TEST INNER RING, GET SPECIFIC RING INDEX);
+            (good2Go, RingWIn) = checkedBand(distance2Test, angle, distance, refPXYZInSkPlane, cf, true, false, false, true);
+            if (good2Go)
+            {
+                double dX = distance2Test * Math.Sin(angle * (Math.PI / 180)) + refPXYZInSkPlane[0, 0];
+                double dY = distance2Test * Math.Cos(angle * (Math.PI / 180)) + refPXYZInSkPlane[1, 0];
+                //object ot;
+                //matlab.Execute(@"cd C:\Users\Brian\Desktop\Solidworks Add Ins");
+                //double rx = refPXYZInSkPlane[0, 0];
+                //double ry = refPXYZInSkPlane[1, 0];
+                //double ipx = intersectionPointsXY[0];
+                //double ipy = intersectionPointsXY[1];
+                //matlab.Feval("PlotPointsAndBound", 1, out ot, xvs, yvs, rx, ry, ipx, ipy, dX, dY);
+                //SketchPoint skPoint = skMgr.CreatePoint(dX / cf, dY / cf, 0);
+                //if (skPoint == null)
+                //{
+                //    System.Windows.Forms.MessageBox.Show("point is null");
+                //}
+                //else
+                //{
+                //Vertex obj,   vertex XYZ,       point in global,          point in sketch,             vertex in sketch,                          X or NaN,   Y or NaN,   Z or NaN, vertex obj or null, rotation matrix, rotate to global, rotate to sketch, conversion factor
+                (Vertex myVert, double[] vPoint, Matrix<double> pXYZGlobal, Matrix<double> pXYZInSkPlane, double[] vPointInSketch) = RotatePointXYZ(dX, dY, 0, null, rotationMatrix, translationMatrix, true, false, cf);
+                double[] node = new double[13];
+                List<double[]> axon = new List<double[]>();
+                node[0] = vPoint[0]; //Global X
+                node[1] = vPoint[1]; //Global Y
+                node[2] = vPoint[2]; //Global Z
+                node[3] = vPointInSketch[0]; //Sketch X
+                node[4] = vPointInSketch[1]; //Sketch Y
+                node[5] = vPointInSketch[2];//Sketch Z
+                node[6] = distance2Test / distance[0];//Distance from com / distinace to boundary
+                node[7] = distance2Test;//distance from com
+                node[8] = angle;//Assigned angle
+                node[9] = RingWIn;//Zone assignment
+                node[10] = 10;//Diameter
+                node[11] = 10;//Conduction Velocity
+                node[12] = 300.5;//Distance to next node
+                node[13] = 1;//Firing (Regular=1) (Intermediate=2)
+                axon.Add(node);
+                //Axons.Add(axon);
+                //}
+
+            }
+
+            // Generate point for middle third section
+            angle = uni.Sample();
+            (intersectionPointsXY, distance) = GetIntersection(angle, vertAngList, ScaledVertsXList, ScaledVertsYList, ScaledVertsZList, refPXYZInSkPlane, matlab);
+
+            distance2Test = GenRandFromDistWithBounds(distance[6], distance[3], norm, random);
+            //                                      (generated Distance, generated angle, distance array, ref point, SW conversion factor, TEST OUTER RING, TEST MIDDLE RING, TEST INNER RING, GET SPECIFIC RING INDEX);
+            (good2Go, RingWIn) = checkedBand(distance2Test, angle, distance, refPXYZInSkPlane, cf, false, true, false, true);
+            if (good2Go)
+            {
+                double dX = distance2Test * Math.Sin(angle * (Math.PI / 180)) + refPXYZInSkPlane[0, 0];
+                double dY = distance2Test * Math.Cos(angle * (Math.PI / 180)) + refPXYZInSkPlane[1, 0];
+                //object ot;
+                //matlab.Execute(@"cd C:\Users\Brian\Desktop\Solidworks Add Ins");
+                //double rx = refPXYZInSkPlane[0, 0];
+                //double ry = refPXYZInSkPlane[1, 0];
+                //double ipx = intersectionPointsXY[0];
+                //double ipy = intersectionPointsXY[1];
+                //matlab.Feval("PlotPointsAndBound", 1, out ot, xvs, yvs, rx, ry, ipx, ipy, dX, dY);
+                //SketchPoint skPoint = skMgr.CreatePoint(dX / cf, dY / cf, 0);
+                //if (skPoint == null)
+                //{
+                //    System.Windows.Forms.MessageBox.Show("point is null");
+                //}
+                //else
+                //{
+                //Vertex obj,   vertex XYZ,       point in global,          point in sketch,             vertex in sketch,                          X or NaN,   Y or NaN,   Z or NaN, vertex obj or null, rotation matrix, rotate to global, rotate to sketch, conversion factor
+                (Vertex myVert, double[] vPoint, Matrix<double> pXYZGlobal, Matrix<double> pXYZInSkPlane, double[] vPointInSketch) = RotatePointXYZ(dX, dY, 0, null, rotationMatrix, translationMatrix, true, false, cf);
+                double[] node = new double[13];
+                List<double[]> axon = new List<double[]>();
+                node[0] = vPoint[0];
+                node[1] = vPoint[1];
+                node[2] = vPoint[2];
+                node[3] = vPointInSketch[0];
+                node[4] = vPointInSketch[1];
+                node[5] = vPointInSketch[2];
+                node[6] = distance2Test / distance[0];
+                node[7] = distance2Test;
+                node[8] = angle;
+                node[9] = RingWIn;
+                node[10] = 10;
+                node[11] = 10;
+                node[12] = 300.5;
+                axon.Add(node);
+                //Axons.Add(axon);
+                //}
+            }
+
+            // Generate point for inner third section
+            angle = uni.Sample();
+            (intersectionPointsXY, distance) = GetIntersection(angle, vertAngList, ScaledVertsXList, ScaledVertsYList, ScaledVertsZList, refPXYZInSkPlane, matlab);
+
+            distance2Test = GenRandFromDistCenter(distance[6], norm, random);
+            //                                      (generated Distance, generated angle, distance array, ref point, SW conversion factor, TEST OUTER RING, TEST MIDDLE RING, TEST INNER RING, GET SPECIFIC RING INDEX);
+            (good2Go, RingWIn) = checkedBand(distance2Test, angle, distance, refPXYZInSkPlane, cf, false, false, true, true);
+            if (good2Go)
+            {
+                double dX = distance2Test * Math.Sin(angle * (Math.PI / 180)) + refPXYZInSkPlane[0, 0];
+                double dY = distance2Test * Math.Cos(angle * (Math.PI / 180)) + refPXYZInSkPlane[1, 0];
+                //object ot;
+                //matlab.Execute(@"cd C:\Users\Brian\Desktop\Solidworks Add Ins");
+                //double rx = refPXYZInSkPlane[0, 0];
+                //double ry = refPXYZInSkPlane[1, 0];
+                //double ipx = intersectionPointsXY[0];
+                //double ipy = intersectionPointsXY[1];
+                //matlab.Feval("PlotPointsAndBound", 1, out ot, xvs, yvs, rx, ry, ipx, ipy, dX, dY);
+                //SketchPoint skPoint = skMgr.CreatePoint(dX / cf, dY / cf, 0);
+                //if (skPoint == null)
+                //{
+                //    System.Windows.Forms.MessageBox.Show("point is null");
+                //}
+                //else
+                //{
+                //Vertex obj,   vertex XYZ,       point in global,          point in sketch,             vertex in sketch,                          X or NaN,   Y or NaN,   Z or NaN, vertex obj or null, rotation matrix, rotate to global, rotate to sketch, conversion factor
+                (Vertex myVert, double[] vPoint, Matrix<double> pXYZGlobal, Matrix<double> pXYZInSkPlane, double[] vPointInSketch) = RotatePointXYZ(dX, dY, 0, null, rotationMatrix, translationMatrix, true, false, cf);
+                double[] node = new double[13];
+                List<double[]> axon = new List<double[]>();
+                node[0] = vPoint[0];
+                node[1] = vPoint[1];
+                node[2] = vPoint[2];
+                node[3] = vPointInSketch[0];
+                node[4] = vPointInSketch[1];
+                node[5] = vPointInSketch[2];
+                node[6] = distance2Test / distance[0];
+                node[7] = distance2Test;
+                node[8] = angle;
+                node[9] = RingWIn;
+                node[10] = 10;
+                node[11] = 10;
+                node[12] = 300.5;
+                axon.Add(node);
+                //Axons.Add(axon);
+                //}
+            }
         }
 
         public (Sketch, Feature) GenBoundarySketch(ISelectionMgr selMgrIN, IModelDoc2 modelDocIN, IModelDocExtension swModelDocExtIN, IFeatureManager featMgrIN, List<Feature> rpFeatsIN, Feature refPlanesFeatIN, IBodyFolder bodyFolderIN, SketchManager skMgrIN)
